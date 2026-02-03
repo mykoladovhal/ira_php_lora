@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +46,27 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function organizedEvents(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
+    public function participatingEvents(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_user')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    public function registeredEvents(): BelongsToMany
+    {
+        return $this->participatingEvents()->wherePivot('status', 'registered');
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 }
